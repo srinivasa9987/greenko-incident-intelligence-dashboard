@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Greenko | Incident Intelligence</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7f6;
+            color: #24332d;
+        }
+
+        header {
+            background: #123b2b;
+            color: white;
+            padding: 24px 6%;
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+            font-size: 27px;
+        }
+
+        header p {
+            margin: 0;
+            color: #d4e8dc;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            margin-bottom: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 14px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 140px;
+            padding: 14px;
+            border: 1px solid #cbd8d0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 15px;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: 2px solid #75a88b;
+            border-color: #24764d;
+        }
+
+        button {
+            background: #187548;
+            color: white;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 14px;
+        }
+
+        button:hover {
+            background: #105b36;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .hint {
+            color: #66756c;
+            font-size: 13px;
+        }
+
+        #status {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .metric {
+            background: #f5f9f6;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        .metric-label {
+            color: #66756c;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            background: #e4f3e8;
+            color: #17643c;
+            font-size: 13px;
+        }
+
+        .badge.high {
+            background: #fde8e7;
+            color: #a12620;
+        }
+
+        .badge.medium {
+            background: #fff1d6;
+            color: #875600;
+        }
+
+        .badge.low {
+            background: #e4f3e8;
+            color: #17643c;
+        }
+
+        .item {
+            border-left: 3px solid #79a98a;
+            padding: 10px 14px;
+            margin: 12px 0;
+            background: #f8faf9;
+            overflow-wrap: anywhere;
+        }
+
+        .item p {
+            margin: 7px 0;
+        }
+
+        .muted {
+            color: #66756c;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error {
+            color: #b42318;
+        }
+
+        .warning {
+            background: #fff4df;
+            border-left: 4px solid #d99a20;
+            padding: 14px;
+            border-radius: 5px;
+            margin-top: 16px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            color: #66756c;
+            font-size: 13px;
+        }
+
+        @media (max-width: 700px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Greenko Incident Intelligence</h1>
+    <p>ESG compliance, workplace safety and environmental incident analysis</p>
+</header>
+
+<main>
+
+    <section class="card">
+        <h2>Historical Incident Analytics</h2>
+        <p class="muted">
+            Summary of the bundled historical incident records. These counts
+            describe the sample dataset, not company-wide incident rates.
+        </p>
+        <div class="grid">
+            <div class="metric">
+                <div class="metric-label">Total Incidents</div>
+                <div id="totalIncidents" class="metric-value">Loading...</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Safety</div>
+                <div id="safetyCount" class="metric-value">—</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Environment</div>
+                <div id="environmentCount" class="metric-value">—</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">ESG Compliance</div>
+                <div id="esgCount" class="metric-value">—</div>
+            </div>
+        </div>
+        <div class="grid">
+            <section class="card">
+                <h3>Severity Distribution</h3>
+                <div id="severityDistribution"></div>
+            </section>
+            <section class="card">
+                <h3>Recurring Incident Patterns</h3>
+                <div id="recurringPatterns"></div>
+            </section>
+        </div>
+        <p id="trendNote" class="muted"></p>
+        <p id="analyticsError" class="error" role="status"></p>
+    </section>
+
+
+    <section class="card">
+        <h2>Analyze a New Incident</h2>
+
+        <p class="muted">
+            Enter an incident description to analyze its category,
+            estimated severity, historical similarities and preventive actions.
+        </p>
+
+        <form id="incidentForm">
+            <label for="incidentText">
+                <strong>Incident Description</strong>
+            </label>
+
+            <br><br>
+
+            <textarea
+                id="incidentText"
+                minlength="10"
+                maxlength="2000"
+                required
+                placeholder="Example: Oil seepage observed near wind gearbox maintenance bay, contained with spill kit."
+            ></textarea>
+
+            <p class="hint">
+                Enter between 10 and 2000 characters.
+            </p>
+
+            <button id="analyzeButton" type="submit">
+                Analyze Incident
+            </button>
+        </form>
+
+        <div id="status" role="status" aria-live="polite"></div>
+    </section>
+
+    <section id="results" class="hidden">
+
+        <div class="grid">
+
+            <section class="card">
+                <h2>Incident Classification</h2>
+
+                <div class="metric">
+                    <div class="metric-label">Category</div>
+                    <div id="category" class="metric-value">—</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Estimated Severity</div>
+                    <div id="severity" class="metric-value">—</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Human Review</div>
+                    <div id="humanReview" class="metric-value">—</div>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>Incident Summary</h2>
+                <p id="summary">—</p>
+
+                <h3>Classification Explanation</h3>
+                <p id="explanation">—</p>
+
+                <div id="matchedKeywords"></div>
+            </section>
+
+        </div>
+
+        <section class="card">
+            <h2>Similar Historical Incidents</h2>
+            <div id="similarIncidents"></div>
+        </section>
+
+        <section class="card">
+            <h2>Recommended Preventive Actions</h2>
+            <div id="preventiveActions"></div>
+        </section>
+
+        <section class="card">
+            <h2>Limitations and Review</h2>
+            <div id="limitations"></div>
+
+            <div class="warning">
+                <strong>Important:</strong>
+                Severity estimates and recommendations are preliminary.
+                Follow approved incident-response procedures and obtain
+                qualified human review where required.
+            </div>
+        </section>
+
+    </section>
+
+</main>
+
+<footer>
+    Greenko Incident Intelligence Dashboard | Rule-based analysis and historical retrieval
+</footer>
+
+<script>
+    const form = document.getElementById("incidentForm");
+    const incidentText = document.getElementById("incidentText");
+    const analyzeButton = document.getElementById("analyzeButton");
+    const status = document.getElementById("status");
+    const results = document.getElementById("results");
+
+    function addTextElement(parent, tag, text, className = "") {
+        const element = document.createElement(tag);
+        element.textContent = text;
+
+        if (className) {
+            element.className = className;
+        }
+
+        parent.appendChild(element);
+        return element;
+    }
+
+    function displayList(containerId, items, emptyMessage) {
+        const container = document.getElementById(containerId);
+        container.replaceChildren();
+
+        if (!Array.isArray(items) || items.length === 0) {
+            addTextElement(container, "p", emptyMessage, "muted");
+            return;
+        }
+
+        items.forEach(item => {
+            addTextElement(container, "div", item, "item");
+        });
+    }
+
+    async function loadAnalytics() {
+        const errorElement = document.getElementById("analyticsError");
+
+        try {
+            const response = await fetch("/api/analytics");
+            if (!response.ok) {
+                throw new Error("Analytics endpoint returned an error.");
+            }
+
+            const data = await response.json();
+            const categories = data.category_counts || {};
+            const severities = data.severity_counts || {};
+            const patterns = data.recurring_patterns || {};
+
+            document.getElementById("totalIncidents").textContent =
+                data.total_incidents ?? 0;
+            document.getElementById("safetyCount").textContent =
+                categories.safety || 0;
+            document.getElementById("environmentCount").textContent =
+                categories.environment || 0;
+            document.getElementById("esgCount").textContent =
+                categories.esg_compliance || 0;
+
+            displayList(
+                "severityDistribution",
+                ["low", "medium", "high"].map(
+                    level => `${level.toUpperCase()}: ${severities[level] || 0}`
+                ),
+                "No severity data available."
+            );
+
+            displayList(
+                "recurringPatterns",
+                Object.entries(patterns).map(
+                    ([name, count]) => `${name}: ${count} incident(s)`
+                ),
+                "No recurring patterns found."
+            );
+
+            document.getElementById("trendNote").textContent =
+                data.trend_note || "";
+        } catch (error) {
+            document.getElementById("totalIncidents").textContent = "Unavailable";
+            errorElement.textContent =
+                "Historical analytics could not be loaded. Check the API server.";
+        }
+    }
+
+    function displaySimilarIncidents(incidents) {
+        const container = document.getElementById("similarIncidents");
+        container.replaceChildren();
+
+        if (!Array.isArray(incidents) || incidents.length === 0) {
+            addTextElement(
+                container,
+                "p",
+                "No sufficiently similar historical incidents were found.",
+                "muted"
+            );
+            return;
+        }
+
+        incidents.forEach(incident => {
+            const card = document.createElement("div");
+            card.className = "item";
+
+            addTextElement(
+                card,
+                "h3",
+                incident.incident_id || "Historical incident"
+            );
+
+            addTextElement(
+                card,
+                "p",
+                incident.narrative || "No description available."
+            );
+
+            addTextElement(
+                card,
+                "p",
+                `Category: ${incident.category || "Unknown"}`
+            );
+
+            addTextElement(
+                card,
+                "p",
+                `Severity: ${incident.severity || "Unknown"}`
+            );
+
+            if (typeof incident.similarity_score === "number") {
+                addTextElement(
+                    card,
+                    "p",
+                    `Text similarity: ${(incident.similarity_score * 100).toFixed(1)}%`
+                );
+            }
+
+            container.appendChild(card);
+        });
+    }
+
+    function displayAnalysis(data) {
+        document.getElementById("category").textContent =
+            data.category || "Unknown";
+
+        const severity = document.getElementById("severity");
+        severity.replaceChildren();
+
+        const severityValue = String(data.severity || "Unknown");
+        const severityBadge = addTextElement(
+            severity,
+            "span",
+            severityValue.toUpperCase(),
+            "badge"
+        );
+
+        const normalizedSeverity = severityValue.toLowerCase();
+
+        if (["high", "medium", "low"].includes(normalizedSeverity)) {
+            severityBadge.classList.add(normalizedSeverity);
+        }
+
+        const review = document.getElementById("humanReview");
+        review.replaceChildren();
+
+        const reviewRequired = data.human_review_required === true;
+
+        addTextElement(
+            review,
+            "span",
+            reviewRequired ? "Review Required" : "Not Flagged",
+            `badge ${reviewRequired ? "high" : "low"}`
+        );
+
+        document.getElementById("summary").textContent =
+            data.summary || "No summary available.";
+
+        const explanation = data.classification_explanation || {};
+
+        document.getElementById("explanation").textContent =
+            explanation.explanation || "No explanation available.";
+
+        displayList(
+            "matchedKeywords",
+            Array.isArray(explanation.matched_keywords)
+                ? explanation.matched_keywords.map(word => `Matched keyword: ${word}`)
+                : [],
+            "No matched keywords reported."
+        );
+
+        displaySimilarIncidents(data.similar_incidents);
+
+        displayList(
+            "preventiveActions",
+            data.preventive_actions,
+            "No recommendations are available."
+        );
+
+        displayList(
+            "limitations",
+            data.limitations,
+            "No limitations were provided."
+        );
+
+        results.classList.remove("hidden");
+    }
+
+    loadAnalytics();
+
+    form.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const text = incidentText.value.trim();
+
+        if (text.length < 10 || text.length > 2000) {
+            status.textContent =
+                "Please enter between 10 and 2000 characters.";
+            status.className = "error";
+            return;
+        }
+
+        analyzeButton.disabled = true;
+        analyzeButton.textContent = "Analyzing...";
+        status.textContent = "Analyzing incident. Please wait.";
+        status.className = "";
+        results.classList.add("hidden");
+
+        try {
+            const response = await fetch("/api/run", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ text: text })
+            });
+
+            const payload = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    payload.detail || "Incident analysis failed."
+                );
+            }
+
+            if (!payload.result) {
+                throw new Error("The API response did not contain analysis results.");
+            }
+
+            displayAnalysis(payload.result);
+
+            status.textContent = "Incident analysis completed successfully.";
+            status.className = "";
+        } catch (error) {
+            status.textContent = `Error: ${error.message}`;
+            status.className = "error";
+        } finally {
+            analyzeButton.disabled = false;
+            analyzeButton.textContent = "Analyze Incident";
+        }
+    });
+</script>
+
+</body>
+</html>
